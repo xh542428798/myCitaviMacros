@@ -24,7 +24,7 @@ public static class CitaviMacro
 		ReferenceGridForm mainForm = Program.ActiveProjectShell.ReferenceGridForm;
 
 
-	    Font font = new Font(mainForm.Font.FontFamily,14); // 在此处指定所需的字体名称和字体大小
+	    Font font = new Font(mainForm.Font.FontFamily,16); // 在此处指定所需的字体名称和字体大小
         mainForm.Font = font;
 		// MessageBox.Show("设置成功");
 		

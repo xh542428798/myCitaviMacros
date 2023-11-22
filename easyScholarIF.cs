@@ -36,12 +36,19 @@ public static class CitaviMacro
 		
 		foreach (Reference reference in references)
 		{	
-			string publicationName = reference.Periodical.ToString(); //"Journal of Cancer";
+			//MessageBox.Show(reference.ReferenceType.ToString());
+			if (reference.ReferenceType.ToString() != "Journal Article")continue;
+			//if(string.IsNullOrEmpty(response)){continue;};
+			//MessageBox.Show((reference.Periodical == null).ToString()) ;
+			if (reference.Periodical == null)continue;
+			//MessageBox.Show(reference.Periodical);
+			string publicationName = reference.Periodical.Name; //"Journal of Cancer";	
 			string url = apiUrl + "?secretKey=" + secretKey + "&publicationName=" + Uri.EscapeDataString(publicationName);
 			using (WebClient client = new WebClient())
 			{
 				client.Encoding = System.Text.Encoding.UTF8;
 				string response = client.DownloadString(url);
+				if(string.IsNullOrEmpty(response)){continue;};
 				// dynamic result = JsonConvert.DeserializeObject(response);
 	            // 使用正则表达式提取数据
 	            string sciif = ExtractValue(response, "\"sciif\":\"(.*?)\"");
@@ -52,18 +59,17 @@ public static class CitaviMacro
 	            //MessageBox.Show("sciif: " + sciif);
 	            //MessageBox.Show("sci: " + sci);
 	            //MessageBox.Show("sciUp: " + sciUp);
-				if(string.IsNullOrEmpty( sciif ))
-				{
-					reference.CustomField1 = sciif;
+				if(!string.IsNullOrEmpty(sciif)){
+					reference.CustomField2 = "IF: "+ sciif;
 				}
-				if(string.IsNullOrEmpty( sci ))
-				{
-					reference.CustomField2 = sci;
+				
+				if(!string.IsNullOrEmpty(sci)){
+					reference.CustomField3 = sci;
 				}
-				if(string.IsNullOrEmpty( sciUp ))
-				{
-					reference.CustomField3 = sciUp;
+				if(!string.IsNullOrEmpty(sciUp)){
+					reference.CustomField4 = sciUp;
 				}
+
 			}
             // 延迟 300 ms后发送 POST 请求
             Thread.Sleep(300);

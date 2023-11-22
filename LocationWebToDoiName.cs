@@ -25,17 +25,31 @@ public static class CitaviMacro
 		MainForm mainForm = Program.ActiveProjectShell.PrimaryMainForm;
 		
 		//if this macro should ALWAYS affect all titles in active project, choose:
-		//ProjectReferenceCollection references = project.References;
+		//ProjectReferenceCollection references = project.References;		
 
 		//if this macro should affect just filtered rows in the active MainForm, choose:
-		List<Reference> references = mainForm.GetFilteredReferences();
+		List<Reference> references = mainForm.GetSelectedReferences();	
 
 		foreach (Reference reference in references)
 		{
-			// 将TranslatedTitle转成CitationKey
-			reference.CitationKey = reference.TranslatedTitle;
-			
-			
+			// your code
+			DebugMacro.WriteLine(reference.Doi);
+			List<Location> refLocation= reference.Locations.ToList();
+            foreach (Location location in refLocation)
+            {
+	            if (reference.Locations == null) continue;
+				if (string.IsNullOrEmpty(location.Address.ToString())) continue;
+				if (location.LocationType != LocationType.ElectronicAddress) continue;
+				string filePath = location.Address.ToString();
+				if (filePath.Contains("https://doi.org/"))
+				{
+					DebugMacro.WriteLine(filePath);
+					DebugMacro.WriteLine(location.LocationType.ToString());
+					reference.Doi = filePath.Replace("https://doi.org/", "");
+				}
+				DebugMacro.WriteLine(reference.Doi);
+
+			}
 		}
 	}
 }

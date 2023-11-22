@@ -94,6 +94,12 @@ public static class CitaviMacro
             {
                 result = result.Substring(0, result.LastIndexOf(@"\""]]]],"));
             }
+			result = Regex.Replace(result, @"\\u(?<code>[a-zA-Z0-9]{4})", match => {
+				    var code = match.Groups["code"].Value;
+				    return ((char)Convert.ToInt32(code, 16)).ToString();
+				});
+			result = result.Replace("\\", "");
+
         }
         return result;
     }

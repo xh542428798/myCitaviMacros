@@ -28,7 +28,7 @@ public static class CitaviMacro
 		//ProjectReferenceCollection references = project.References;
 
 		//if this macro should affect just filtered rows in the active MainForm, choose:
-		List<Reference> references = mainForm.GetFilteredReferences();
+		List<Reference> references = mainForm.GetSelectedReferences();
 
 		foreach (Reference reference in references)
 		{
