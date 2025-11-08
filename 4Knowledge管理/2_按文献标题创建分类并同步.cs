@@ -1,47 +1,62 @@
-
 using System;
+using System.Linq;
 using System.ComponentModel;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Net;
-using System.Linq;
 
 using SwissAcademic.Citavi;
 using SwissAcademic.Citavi.Metadata;
 using SwissAcademic.Citavi.Shell;
 using SwissAcademic.Collections;
 
-/****************************************************************************************************************************
-* 
-* 宏名称：为选中的知识条目添加指定分类 (Add Category To Selected Knowledge Items)
-* 
-* 功能描述：
-* 本宏用于批量为用户在Citavi中选中的一个或多个知识条目（包括摘录、注释、思想等）添加一个指定的分类。
-* 如果指定的分类在项目中尚不存在，宏会自动创建它。
-* 对于已经拥有该分类的知识条目，宏会自动跳过，避免重复添加。
-*
-* 使用场景：
-* 当你阅读文献并做了大量摘录和笔记后，希望将这些零散的知识条目统一归入某个主题或章节时，
-* 使用此宏可以一键完成，无需手动逐个添加分类，极大提高整理效率。
-*
-* 使用方法：
-* 1. 在Citavi中，选中你想要添加分类的一个或多个知识条目。
-* 2. 打开宏编辑器（工具 -> 宏 -> 编辑宏），粘贴此代码。
-* 3. 在代码中找到 "EDIT HERE" 区域，修改 `categoryNameToAdd` 变量的值，为你想要的分类名称。
-* 4. 运行宏。
-*
-* 注意事项：
-* - 请确保在运行前已选中至少一个知识条目。
-* - 分类名称请务必填写准确。
-*
-****************************************************************************************************************************/
-
-
-
+// 将所选的References的所有Knowlwdges按References标题创建Knowlwdges的categories类
+// 为知识条目添加参考类别、关键词和分组，反之亦然。
 public static class CitaviMacro
 {
+	// 注意要在72行设置Knowlwdge合并的组别!!!!!
 	public static void Main()
 	{
+		//Get the active project
+		Project project = Program.ActiveProjectShell.Project;
+		
+		//Get the active ("primary") MainForm
+		MainForm mainForm = Program.ActiveProjectShell.PrimaryMainForm;
+		
+		//if this macro should ALWAYS affect all titles in active project, choose:
+		//ProjectReferenceCollection references = project.References;		
+
+		//if this macro should affect just filtered rows in the active MainForm, choose:
+		List<Reference> references = Program.ActiveProjectShell.PrimaryMainForm.GetSelectedReferences();
+		Dictionary<string, Category> categoryDictionary = new Dictionary<string, Category>();
+		foreach (Reference currentReference in references)
+		{
+			// 获取作者、时间、Title
+			Person author = currentReference.Authors[0];
+			string year = currentReference.Year;
+			string IF = currentReference.CustomField1;
+			string Qpart = currentReference.CustomField2;
+			// 获取Title并提取前10个单词
+			string originalTitle = currentReference.Title;
+			string[] words = originalTitle.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+			string result;
+			if (words.Length >= 10)
+			{// 取前10个单词，首字母大写，其余小写
+				result = string.Join(" ", words.Take(10).Select(word => word.First().ToString().ToUpper() + word.Substring(1).ToLower())); 
+			}
+			else
+			{// 所有单词，首字母大写，其余小写
+				result = string.Join(" ", words.Select(word => word.First().ToString().ToUpper() + word.Substring(1).ToLower())); 
+			}
+			string citationkey = author.LastName.ToString() +year+"_"+result+"_"+IF+Qpart;
+		
+
+			Category category = project.Categories.Add(citationkey);
+			currentReference.Categories.Add(category);
+		}
+		
+		
 		//****************************************************************************************************************
 		// ADD REFERENCE CATEGORIES, KEYWORDS AND GROUPS TO KNOWLEDGE ITEMS AND VICE VERSA
 		// 2.0 -- 2017-03-16
@@ -51,7 +66,7 @@ public static class CitaviMacro
 		//reference to active Project
 		Project activeProject = Program.ActiveProjectShell.Project;
 		if (activeProject == null) return;
-		List<Reference> references = Program.ActiveProjectShell.PrimaryMainForm.GetSelectedReferences();
+		//List<Reference> references = Program.ActiveProjectShell.PrimaryMainForm.GetSelectedReferences();
 		// 
         // choose direction
         int direction = 1; // 1 for reference -> knowledge item, 2 for knowledge item -> reference
@@ -145,7 +160,4 @@ public static class CitaviMacro
          
 		MessageBox.Show(message, "Macro", MessageBoxButtons.OK, MessageBoxIcon.Information);
 	}
-
-
-	//end IsBackupAvailable()
 }
